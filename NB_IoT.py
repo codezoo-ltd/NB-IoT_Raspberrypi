@@ -1,5 +1,6 @@
 import time
 import serial
+import re
 import RPi.GPIO as GPIO
 
 #ser = serial.Serial()
@@ -13,6 +14,8 @@ ATCmdList = {
     'IsAttachNet' : {'CMD': "AT+CGATT?", 'REV': "+CGATT:1\r\n"},
     'OpenUDP' : {'CMD': "AT+NSOCR=DGRAM,17,", 'REV': "OK\r\n"},
     'CloseUDP' : {'CMD': "AT+NSOCL=", 'REV': "\r\n"},   # OK, ERROR ??
+    'SendUDP' : {'CMD': "AT+NSOST=", 'REV': "\r\n"},
+    'RecevieUDP' : {'CMD': "AT+NSORF=", 'REV': "OK\r\n"},
 }
 
 class NBIoT:
@@ -73,7 +76,7 @@ class NBIoT:
                     print(e)
                     return False
             if(self.response.find(cmd_response) != -1):
-                print("read response: " + self.response)
+                #print("read response: " + self.response)
                 return True
 
     def __sendATCmd(self, command):
@@ -82,7 +85,7 @@ class NBIoT:
         self.compose = str(command) + "\r"
         NBIoT.ser.reset_input_buffer()
         NBIoT.ser.write(self.compose.encode())
-        print(self.compose)
+        #print(self.compose)
     
     def sendATCmd(self, command, cmd_response, timeout = None):
         ''' Send AT command & Read command response ''' 
@@ -130,8 +133,9 @@ class NBIoT:
         return (self.sendATCmd(ATCmdList['IsAttachNet']['CMD'], ATCmdList['IsAttachNet']['REV']) != "Error")
 
     # UDP methods 
-    def openUDPSockect(self):
-        command = ATCmdList['OpenUDP']['CMD'] + self.portNum + ',1'
+    def openUDPSockect(self, port=10):
+        ''' port = 0~65535 (reserve 5683) '''
+        command = ATCmdList['OpenUDP']['CMD'] + str(port) + ',1'
         mySocket = self.sendATCmd(command, ATCmdList['OpenUDP']['REV'])
 
         if(mySocket != "Error"):
@@ -143,3 +147,53 @@ class NBIoT:
         command = ATCmdList['CloseUDP']['CMD'] + str(mySocket)
         self.sendATCmd(command, ATCmdList['CloseUDP']['REV'])
         
+    # data type????
+    def sendUDPData(self, mySocket, data, ip_address=None, ip_port=None):
+        ''' send UDP data 
+            max data size: 256bytes -> recomand 250bytes 
+            send data is Nibble type (ex, "A" -> 0x41)'''
+        command = ATCmdList['SendUDP']['CMD'] + str(mySocket) + ","
+        if ip_address is None:
+            command += self.ipAddress
+        else:
+            command += str(ip_address)
+        command += ","
+        if ip_port is None:
+            command += self.portNum
+        else:
+            command += str(ip_port)
+        command += ","
+        command += str(len(data)) + "," + data.encode().hex()
+
+        self.sendATCmd(command, ATCmdList['SendUDP']['REV'])
+
+    def recevieUDPData(self, mySocket, rev_length=256, rev_timeOut=3):
+        ''' recevie buffer size : 512 bytes 
+        return : ['ip','port','data length', 'data', 'renainnig length']'''
+        duration = 500
+        count = ((rev_timeOut*1000)/duration)
+        datareceve = False
+        data_length = ""
+
+        for i in range(0,int(count)):
+            if(self.__readATResponse("+NSONMI")):
+                datareceve = True
+                data = self.response.split(',')
+                data_length = data[len(data)-1]
+                break
+            else:
+                print("wait index {}".format(i))
+                self.__delay(duration)
+
+        if(datareceve):
+            if int(data_length) > rev_length :
+                data_length = str(rev_length)
+            command = ATCmdList['RecevieUDP']['CMD'] + str(mySocket) + "," + data_length
+            if (self.sendATCmd(command, ATCmdList['RecevieUDP']['REV']) != "Error"):
+               data = self.response.split(',')
+               data[4] = bytes.fromhex(data[4]).decode('utf-8')
+               data[5] = re.search(r'\d+', data[5]).group()
+               return data[1:]
+
+        print("Data read fail")
+        return ['-1','-1','-1','-1','-1']
