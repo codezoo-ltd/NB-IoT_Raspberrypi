@@ -6,9 +6,9 @@ import RPi.GPIO as GPIO
 #ser = serial.Serial()
 
 ATCmdList = {
-    'IMEI': {'CMD': "AT+CGSN=1", 'REV': "OK\r\n"},
-    'FWInfo': {'CMD': "AT+CGMR", 'REV': "OK\r\n"},
-    'HWInfo': {'CMD': "AT+CGMM", 'REV': "OK\r\n"},
+    'IMEI': {'CMD': "AT+CGSN=1", 'REV': "\r\nOK\r\n"},
+    'FWInfo': {'CMD': "AT+CGMR", 'REV': "\r\nOK\r\n"},
+    'HWInfo': {'CMD': "AT+CGMM", 'REV': "\r\nOK\r\n"},
     'AttachNet' : {'CMD': "AT+CGATT=1", 'REV': "OK\r\n"},
     'DetachNet' : {'CMD': "AT+CGATT=0", 'REV': "OK\r\n"},
     'IsAttachNet' : {'CMD': "AT+CGATT?", 'REV': "+CGATT:1\r\n"},
@@ -111,15 +111,19 @@ class NBIoT:
     # AT command methods
     def getIMEI(self):
         ''' get IMEI number'''
-        return self.sendATCmd(ATCmdList['IMEI']['CMD'], ATCmdList['IMEI']['REV'])
+        rev = self.sendATCmd(ATCmdList['IMEI']['CMD'], ATCmdList['IMEI']['REV'])
+        data = rev.split(':')
+        return data[1][:data[1].index(ATCmdList['IMEI']['REV'])]
 
     def getFirmwareInfo(self):
         ''' get FW version '''
-        return self.sendATCmd(ATCmdList['FWInfo']['CMD'], ATCmdList['FWInfo']['REV'])
+        data =  self.sendATCmd(ATCmdList['FWInfo']['CMD'], ATCmdList['FWInfo']['REV'])
+        return data[:data.index(ATCmdList['FWInfo']['REV'])]
 
     def getHardwareInfo(self):
         ''' get modem model info '''
-        return self.sendATCmd(ATCmdList['HWInfo']['CMD'], ATCmdList['HWInfo']['REV'])
+        data = self.sendATCmd(ATCmdList['HWInfo']['CMD'], ATCmdList['HWInfo']['REV'])
+        return data[:data.index(ATCmdList['HWInfo']['REV'])]
     
     def attachNetwork(self, connect=True):
         ''' connect/disconnect base station fo operator '''
