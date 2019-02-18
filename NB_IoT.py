@@ -1,9 +1,8 @@
 import time
 import serial
 import re
+import threading
 import RPi.GPIO as GPIO
-
-#ser = serial.Serial()
 
 ATCmdList = {
     'IMEI': {'CMD': "AT+CGSN=1", 'REV': "\r\nOK\r\n"},
@@ -17,6 +16,8 @@ ATCmdList = {
     'SendUDP' : {'CMD': "AT+NSOST=", 'REV': "\r\n"},
     'RecevieUDP' : {'CMD': "AT+NSORF=", 'REV': "OK\r\n"},
 }
+
+IsRevModemData = False
 
 class NBIoT:
     ser = None
@@ -47,6 +48,16 @@ class NBIoT:
     def getResetPinNum(self):
         ''' get modem reset pin number '''
         return self.resetPinNum
+    
+    def resetModem(self):
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.resetPinNum, GPIO.OUT)
+        GPIO.output(self.resetPinNum, True)
+        time.sleep(1)
+        GPIO.output(self.resetPinNum, False)
+        time.sleep(1)
+        GPIO.output(self.resetPinNum, True)
+        time.sleep(60)
 
     def setIPAddress(self, ip):
         ''' set ip address'''
@@ -171,6 +182,11 @@ class NBIoT:
 
         self.sendATCmd(command, ATCmdList['SendUDP']['REV'])
 
+    def __revModem_Thread(self):
+        if self.__readATResponse("+NSONMI"):
+            global IsRevModemData
+            IsRevModemData  = True
+
     def recevieUDPData(self, mySocket, rev_length=256, rev_timeOut=3):
         ''' recevie buffer size : 512 bytes 
         return : ['ip','port','data length', 'data', 'renainnig length']'''
@@ -179,16 +195,28 @@ class NBIoT:
         datareceve = False
         data_length = ""
 
+        global IsRevModemData
+        IsRevModemData  = False 
+        t1 = threading.Thread(target=self.__revModem_Thread)
+        t1.daemon = True
+        t1.start()
         for i in range(0,int(count)):
-            if(self.__readATResponse("+NSONMI")):
+            if IsRevModemData:
                 datareceve = True
                 data = self.response.split(',')
                 data_length = data[len(data)-1]
                 break
             else:
-                print("wait index {}".format(i))
+                #print("wait index {}".format(i))
                 self.__delay(duration)
 
+        if datareceve == False:
+            try:
+                t1._stop()
+                del t1
+            except AssertionError as e:
+                print(e)
+            
         if(datareceve):
             if int(data_length) > rev_length :
                 data_length = str(rev_length)

@@ -6,6 +6,10 @@ server_port = 7
 
 node = NBIoT()
 
+print("reset start")
+node.resetModem()
+print("reset end")
+
 print("AT: " + node.sendATCmd("AT", "OK\r\n"))
 print("IMEI: " + node.getIMEI()) 
 print("FW Ver: " + node.getFirmwareInfo())
@@ -17,13 +21,11 @@ else:
     print("Network disconnect")
     node.attachNetwork()
 
-node.setIPAddress(server_ip)
-node.setPortNum(server_port)
-
-node.closeUDPSocket(0)
 socket = node.openUDPSockect()
 
-echo_data = "Hi There"
-node.sendUDPData(socket, echo_data)
-data = node.recevieUDPData(socket)
-print(data)
+node.setPortNum(server_port)
+node.setIPAddress(server_ip)
+node.sendUDPData(socket, "Hi There")
+print(node.recevieUDPData(socket))
+
+node.closeUDPSocket(socket)
