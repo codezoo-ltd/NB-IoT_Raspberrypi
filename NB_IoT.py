@@ -154,7 +154,7 @@ class NBIoT:
         mySocket = self.sendATCmd(command, ATCmdList['OpenUDP']['REV'])
 
         if(mySocket != "Error"):
-            return int(mySocket[0])
+            return int(re.search(r'\d+', mySocket).group())
         else:
             return -1
     
