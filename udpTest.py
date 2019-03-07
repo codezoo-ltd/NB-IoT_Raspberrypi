@@ -6,9 +6,9 @@ server_port = 7
 
 node = NBIoT()
 
-print("reset start")
-node.resetModem()
-print("reset end")
+#print("reset start")
+#node.resetModem()
+#print("reset end")
 
 print("AT: " + node.sendATCmd("AT", "OK\r\n"))
 print("IMEI: " + node.getIMEI()) 
@@ -21,6 +21,7 @@ else:
     print("Network disconnect")
     node.attachNetwork()
 
+node.closeUDPSocket(0)
 socket = node.openUDPSockect()
 
 node.setPortNum(server_port)
