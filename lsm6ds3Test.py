@@ -1,4 +1,4 @@
-from LSM6DS3 import LSM6DS3
+from CZNBIoT.LSM6DS3 import LSM6DS3
 import time
 
 Axes_Sensor = LSM6DS3()

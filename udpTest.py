@@ -1,4 +1,4 @@
-from NB_IoT import NBIoT
+from CZNBIoT.NB_IoT import NBIoT
 import time 
 
 server_ip = "195.34.89.241"

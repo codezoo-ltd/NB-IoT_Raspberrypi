@@ -1,4 +1,4 @@
-from HTS221 import HTS221
+from CZNBIoT.HTS221 import HTS221
 
 TH_Sensor = HTS221()
 
