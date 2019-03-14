@@ -12,7 +12,7 @@ ATCmdList = {
     'DetachNet' : {'CMD': "AT+CGATT=0", 'REV': "OK\r\n"},
     'IsAttachNet' : {'CMD': "AT+CGATT?", 'REV': "+CGATT:1\r\n"},
     'OpenUDP' : {'CMD': "AT+NSOCR=DGRAM,17,", 'REV': "OK\r\n"},
-    'CloseUDP' : {'CMD': "AT+NSOCL=", 'REV': "\r\n"},   # OK, ERROR ??
+    'CloseUDP' : {'CMD': "AT+NSOCL=", 'REV': "\r\n"}, 
     'SendUDP' : {'CMD': "AT+NSOST=", 'REV': "\r\n"},
     'RecevieUDP' : {'CMD': "AT+NSORF=", 'REV': "OK\r\n"},
 }
@@ -162,7 +162,7 @@ class NBIoT:
         command = ATCmdList['CloseUDP']['CMD'] + str(mySocket)
         self.sendATCmd(command, ATCmdList['CloseUDP']['REV'])
         
-    # data type????
+    # data type
     def sendUDPData(self, mySocket, data, ip_address=None, ip_port=None):
         ''' send UDP data 
             max data size: 256bytes -> recomand 250bytes 

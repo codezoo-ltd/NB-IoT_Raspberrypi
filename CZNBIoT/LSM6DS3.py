@@ -3,6 +3,7 @@ import smbus
 LSM6DS3_ADDR = 0x6A
 LSM6DS3_WHO_AM_I = 0x0F
 LSM6DS3_CTRL1_XL = 0x10
+LSM6DS3_XG_CTRL2_G = 0x11
 # Accelerometer 
 LSM6DS3_OUT_X_L_XL = 0x28
 LSM6DS3_OUT_X_H_XL = 0x29
@@ -24,6 +25,8 @@ class LSM6DS3:
         self.bus = smbus.SMBus(1)
         # Accelerometer init (104Hz, 2G)
         self.bus.write_byte_data(LSM6DS3_ADDR, LSM6DS3_CTRL1_XL, 0x40)
+        # gyroscope init (104Hz, 125dps)
+        self.bus.write_byte_data(LSM6DS3_ADDR, LSM6DS3_XG_CTRL2_G, 0x41)
 
     def __int_to_signed_short(self, value):
         return -(value & 0x8000) | (value & 0x7fff)
