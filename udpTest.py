@@ -27,6 +27,6 @@ socket = node.openUDPSockect()
 node.setPortNum(server_port)
 node.setIPAddress(server_ip)
 node.sendUDPData(socket, "Hi There")
-print(node.recevieUDPData(socket))
+print(node.receiveUDPData(socket))
 
 node.closeUDPSocket(socket)

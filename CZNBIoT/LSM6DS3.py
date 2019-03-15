@@ -2,6 +2,7 @@ import smbus
 
 LSM6DS3_ADDR = 0x6A
 LSM6DS3_WHO_AM_I = 0x0F
+LSM6DS3_ID = 0x69
 LSM6DS3_CTRL1_XL = 0x10
 LSM6DS3_XG_CTRL2_G = 0x11
 # Accelerometer 

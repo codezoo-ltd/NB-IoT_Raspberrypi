@@ -187,7 +187,7 @@ class NBIoT:
             global IsRevModemData
             IsRevModemData  = True
 
-    def recevieUDPData(self, mySocket, rev_length=256, rev_timeOut=3):
+    def receiveUDPData(self, mySocket, rev_length=256, rev_timeOut=3):
         ''' recevie buffer size : 512 bytes 
         return : ['ip','port','data length', 'data', 'renainnig length']'''
         duration = 500
